@@ -1,5 +1,10 @@
 #!/bin/bash
 
+interactive_shell() {
+    sh
+    shutdown
+}
+
 run_hook() {
     mkdir -p /logs /mnt /tmp
 
@@ -7,7 +12,17 @@ run_hook() {
         mount -t tmpfs tmpfs /tmp
     fi
 
-    if [ -b /dev/%part1% ] && mount /dev/%part1% /logs; then
+    export LOG=/tmp/init.log
+
+    if [ -b /dev/%part1% ]; then
+        {
+            e2fsck -f /dev/%part1%
+            mount /dev/%part1% /logs
+        } 2>>$LOG || {
+            echo "Failed to mount log partition" | tee -a $LOG
+            interactive_shell
+        }
+
         export LOG=/logs/init.log
 
         latest_checkpoint="$(find /logs -mindepth 1 -maxdepth 1 -type f -iname "checkpoint_*" | tail -1)"
@@ -17,8 +32,6 @@ run_hook() {
 
         export CURRENT_TEST=$((latest_checkpoint + 1))
     else
-        export LOG=/tmp/init.log
-
         {
             parted -s /dev/%disk% mklabel gpt
             parted -s /dev/%disk% mkpart primary ext4 1MiB 101MiB
@@ -26,17 +39,19 @@ run_hook() {
 
             mkfs.ext4 /dev/%part1%
             mount /dev/%part1% /logs
-        } || {
+        } 2>>$LOG || {
             echo "Failed to create partitions and mount log partition" | tee -a $LOG
-            shutdown
+            interactive_shell
         }
 
         export LOG=/logs/init.log
 
-        mkfs.ntfsplus /dev/%part2%
-        mount -t ntfsplus /dev/%part2% /mnt || {
-            echo "Failed to mount ntfsplus" | tee -a $LOG
-            shutdown
+        {
+            mkfs.ntfsplus /dev/%part2%
+            mount -t ntfsplus /dev/%part2% /mnt
+        } 2>>$LOG || {
+            echo "Failed to mount test partition" | tee -a $LOG
+            interactive_shell
         }
 
         mkdir -p /logs/tests
@@ -48,7 +63,7 @@ run_hook() {
         T=$CURRENT_TEST
         [ ${#T} = 1 ] && T="0$T"
         echo "Running test $T"
-        /bin/bash "/tests/test_$T.sh" >"/logs/tests/test_$T.log" 2>&1
+        bash "/tests/test_$T.sh" >"/logs/tests/test_$T.log" 2>&1
         CURRENT_TEST=$((CURRENT_TEST + 1))
     done
 

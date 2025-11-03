@@ -23,6 +23,6 @@ for kernel in "${KERNEL_LIST[@]}"; do
         -kernel "vmlinuz-${kernel}" \
         -initrd "initramfs-${kernel}.img" \
         -drive "if=${QEMU_DISK_CONTROLLER},id=${DISK},file=${image},cache=none,format=${QEMU_IMG_FORMAT}" \
-        -append "console=ttyS0" \
+        -append "console=ttyS0 panic=1 loglevel=7" \
         -nographic 2>&1 | tee "log-${kernel}.txt"
 done

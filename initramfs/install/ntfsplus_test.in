@@ -2,19 +2,22 @@
 
 build() {
     add_binary "/bin/bash"
+    add_binary "/bin/rm"
+    add_binary "/bin/sleep"
+    add_binary "/bin/timeout"
+    add_binary "/bin/find"
+    add_binary "/bin/dd"
+    add_binary "/bin/%checksum%"
     add_binary "/bin/mount"
     add_binary "/bin/mountpoint"
     add_binary "/bin/umount"
     add_binary "/sbin/parted"
     add_binary "/sbin/mkfs.ext4"
     add_binary "/sbin/mkfs.ntfsplus"
+    add_binary "/sbin/e2fsck"
     add_binary "/sbin/ntfsck"
-    add_binary "/bin/dd"
-    add_binary "/usr/bin/%checksum%"
-    add_binary "/bin/rm"
-    add_binary "/bin/sleep"
-    add_binary "/bin/timeout"
-    add_binary "/bin/find"
+
+    add_udev_rule "%srcdir%/udev/00-ntfsplus.rules"
 
     # Add test scripts
     find "%srcdir%/tests" -name "*.sh" | while read -r test; do
