@@ -1,0 +1,3 @@
+#!/bin/bash
+set -e
+mount -o ro -t ntfsplus /dev/%part2% /mnt

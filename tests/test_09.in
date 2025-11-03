@@ -1,0 +1,3 @@
+#!/bin/bash
+set -e
+rm /mnt/test_1gb.bin

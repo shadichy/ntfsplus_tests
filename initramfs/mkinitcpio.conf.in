@@ -1,0 +1,3 @@
+MODULES=(ntfsplus %storagemod%)
+
+HOOKS=(base udev keyboard %hook%)

@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+touch /logs/checkpoint_13
+sync
+dd if=/dev/random of=/mnt/test_1gb_unmount.bin bs=1M count=1024 &
+sleep 3
+reboot

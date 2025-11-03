@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+cat /mnt/test_1gb.bin > /dev/null
+sha256sum -c /tmp/test_1gb.sha256

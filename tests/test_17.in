@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+touch /logs/checkpoint_17
+sync
+mount -o rw -t ntfsplus /dev/%part2% /mnt
+dd if=/dev/random of=/mnt/test_1gb_unmount_lazy.bin1 bs=2M count=512 &
+dd if=/dev/random of=/mnt/test_1gb_unmount_lazy.bin2 bs=4M count=256 &
+dd if=/dev/random of=/mnt/test_1gb_unmount_lazy.bin3 bs=8M count=128 &
+sleep 3
+reboot

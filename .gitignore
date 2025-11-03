@@ -1,0 +1,11 @@
+/tmp
+
+.vscode
+
+/initramfs/hooks/*
+!/initramfs/hooks/*.in
+/initramfs/install/*
+!/initramfs/install/*.in
+/initramfs/mkinitcpio.conf
+
+/tests/*.sh

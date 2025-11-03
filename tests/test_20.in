@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+mount -o rw -t ntfsplus /dev/%part2% /mnt
+dd if=/dev/random of=/mnt/test_2gb.bin bs=1M count=2048
+df /mnt

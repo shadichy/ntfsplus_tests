@@ -1,0 +1,75 @@
+#!/bin/bash
+
+run_hook() {
+    mkdir -p /logs /mnt /tmp
+
+    if ! mountpoint -q /tmp; then
+        mount -t tmpfs tmpfs /tmp
+    fi
+
+    if [ -b /dev/%part1% ] && mount /dev/%part1% /logs; then
+        export LOG=/logs/init.log
+
+        latest_checkpoint="$(find /logs -mindepth 1 -maxdepth 1 -type f -iname "checkpoint_*" | tail -1)"
+        latest_checkpoint=${latest_checkpoint##*_}
+
+        rm -rf /logs/checkpoint_*
+
+        export CURRENT_TEST=$((latest_checkpoint + 1))
+    else
+        export LOG=/tmp/init.log
+
+        {
+            parted -s /dev/%disk% mklabel gpt
+            parted -s /dev/%disk% mkpart primary ext4 1MiB 101MiB
+            parted -s /dev/%disk% mkpart primary 101MiB 100%
+
+            mkfs.ext4 /dev/%part1%
+            mount /dev/%part1% /logs
+        } || {
+            echo "Failed to create partitions and mount log partition" | tee -a $LOG
+            shutdown
+        }
+
+        export LOG=/logs/init.log
+
+        mkfs.ntfsplus /dev/%part2%
+        mount -t ntfsplus /dev/%part2% /mnt || {
+            echo "Failed to mount ntfsplus" | tee -a $LOG
+            shutdown
+        }
+
+        mkdir -p /logs/tests
+
+        export CURRENT_TEST=1
+    fi
+
+    while [ $CURRENT_TEST -le %testcount% ]; do
+        T=$CURRENT_TEST
+        [ ${#T} = 1 ] && T="0$T"
+        echo "Running test $T"
+        /bin/bash "/tests/test_$T.sh" >"/logs/tests/test_$T.log" 2>&1
+        CURRENT_TEST=$((CURRENT_TEST + 1))
+    done
+
+    umount /mnt
+
+    echo "Tests completed"
+    echo "Logs:"
+    echo "-----"
+    echo
+    echo "/logs/init.log:"
+    cat /logs/init.log
+    echo
+    echo "/logs/tests/*.log:"
+    for log in /logs/tests/*.log; do
+        echo "$log:"
+        cat "$log"
+        echo
+    done
+
+    umount /logs
+
+    echo "Shutting down..."
+    shutdown
+}

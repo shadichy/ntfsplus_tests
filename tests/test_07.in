@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+dd if=/dev/random of=/mnt/test_1gb.bin bs=1M count=1024
+sha256sum /mnt/test_1gb.bin > /tmp/test_1gb.sha256
