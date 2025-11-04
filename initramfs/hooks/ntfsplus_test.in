@@ -16,7 +16,7 @@ run_hook() {
 
     if [ -b /dev/%part1% ]; then
         {
-            e2fsck -f /dev/%part1%
+            e2fsck -fp /dev/%part1%
             mount /dev/%part1% /logs
         } 2>>$LOG || {
             echo "Failed to mount log partition" | tee -a $LOG
